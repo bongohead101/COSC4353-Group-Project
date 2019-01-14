@@ -11,19 +11,22 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public class Engine implements GetPayment {
-	public static String sentMessage = null;
+	public static String sentMessage = "Initial";
 	public static String userInputString = "";
 	public static boolean needUserInput = false;
 	public static boolean playingTelegramGame;
+	static String playing;
 
 	ArrayList<Player> players;
 	Board board;
 	Deck deck;
+	Tweets tweet = new Tweets();
+
 
 	private static Scanner keyboard = new Scanner(System.in);
 	public static boolean gameover = false;
 	public static boolean setup = false;
-	public Integer numplayer = null;
+	//public Integer numplayer = null;
 	
 	
 	public static void telegramOrConsole(){
@@ -44,7 +47,7 @@ public class Engine implements GetPayment {
 	}
 	
     public void StartUp() throws InterruptedException {
-    	Thread.sleep(5000);	
+    	//Thread.sleep(5000);
     	if(playingTelegramGame == true){
     		sentMessage = "RISK Board Game";	
     		TelegramBotsApi sendUserMessage = new TelegramBotsApi();	
@@ -62,10 +65,10 @@ public class Engine implements GetPayment {
    		 	Thread.sleep(5000);		//4
    		 System.out.println("this is user input");
    		System.out.println(userInputString);
-   		 	numplayer = Integer.parseInt(userInputString);
-   		 players = Create_Names_and_Turn_Position(numplayer);
+   		Integer telegramplayers = Integer.parseInt(userInputString);
+   		 players = Create_Names_and_Turn_Position(telegramplayers);
    		 System.out.println("this is what numplayer was set to");
-   		 System.out.println(numplayer);
+   		 System.out.println(telegramplayers);
     	}
     	else if(Main.instructionsExecuted == false && playingTelegramGame == false){
         	  while(true) {
@@ -89,6 +92,13 @@ public class Engine implements GetPayment {
 
 		// Create and Shuffle Deck
 		deck = new Deck(board.getTerritories());
+		//Gets current Twitter Timeline and prepares starting message
+		tweet.getTimeline();
+		StringBuilder names = new StringBuilder();
+		for(Player p: players ){
+			names.append(p.getName() + " ");
+		}
+		playing = names.toString();
 		//System.out.println("hiiii1");
 		clearScreen();
 		//System.out.println("hiiii2");
@@ -96,6 +106,10 @@ public class Engine implements GetPayment {
 	}
 
 	public void Turns() {
+		//Announces players in new game and deletes all messages previous to that
+		tweet.sendTweet("Game starting with players: " + playing);
+		tweet.deleteTweets();
+
 
 		TurnManager turnManager = new TurnManager(players, board);
 		new AttackWatcher(turnManager);
@@ -276,10 +290,9 @@ public class Engine implements GetPayment {
             }
 		}
 		clearScreen();
-		// Currently is sorting lowest rolls to highest (Turn 1 is lowest roller)
 		for (int i = 0; i < numberofplayers-1; i++){
             for (int j = 0; j < numberofplayers-i-1; j++){
-                if (pos[j] > pos[j+1]){
+                if (pos[j] < pos[j+1]){
                     int temp = pos[j]; String temp2 = names[j];
                     pos[j] = pos[j+1];
                     names[j] = names[j+1];
@@ -331,6 +344,7 @@ public class Engine implements GetPayment {
 						System.out.println("Color Taken!\nAvailable Colors: " + available_colors + "\n");
 					}
 				}while(true);
+				tempplayers.add(i, new Player(names[i], requested_color, (i + 1), getArmyCount(numberofplayers)));
 			}
 		}
 
@@ -538,47 +552,47 @@ public class Engine implements GetPayment {
 		
 		
 	}
-	
+
 	public static void playerPurchaseUndo(TurnManager turnmanager){
 		int selection = -1;
 		try{
 		 //print players
 			ArrayList<Player> playerlist = turnmanager.getPlayersObject();
-			
+
 			while(selection < 1 || selection >(playerlist.size())){
-				
+
 				for(int i =0;i<(turnmanager.getPlayersObject()).size();i++){
-					
+
 					if((playerlist.get(i)).getName()!=turnmanager.getCurrentPlayerName()){
 						System.out.println((i+1)+")"+(playerlist.get(i)).getName());
 					}
 				}
-				
-				
+
+
 				selection = Get_A_Number();
-			
+
 			}
-			
+
 			selection -= 1;
-			
+
 			int amount =-1;
-			
+
 			while(amount < 0){
-				
+
 				System.out.println("How Much? to player:"+ playerlist.get(selection).getName());
 				amount = Get_A_Number();
-				
+
 				if(amount < 0 || amount > (turnmanager.getCurrentPlayerObject()).getInGameCredit()){
 					System.out.println("Invalid amount!");
 					amount = -1;
 				}
-				
+
 			}
-			
+
 			//do transfer between (turnmanager.getCurrentPlayerObject()) to playerlist.get(selection)
-			
+
 			transferGameCredit((turnmanager.getCurrentPlayerObject()),playerlist.get(selection),amount);
-			
+
 		}catch(InputMismatchException e){
 			giveCreditsMenu(turnmanager);
 		}

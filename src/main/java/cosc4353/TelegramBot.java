@@ -2,7 +2,6 @@ package cosc4353;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Math.toIntExact;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -55,13 +54,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         } else if (update.hasCallbackQuery()) {
             // Set variables
             String call_data = update.getCallbackQuery().getData();
-            long message_id = update.getCallbackQuery().getMessage().getMessageId();
+            int message_id = update.getCallbackQuery().getMessage().getMessageId();
             long chat_id = update.getCallbackQuery().getMessage().getChatId();
             if (call_data.equals("start")) {
                 String answer = "gamestarted";
                 EditMessageText new_message = new EditMessageText()
                         .setChatId(chat_id)
-                        .setMessageId(toIntExact(message_id))
+                        .setMessageId(message_id)
                         .setText(answer);
                 try {
                     execute(new_message);
@@ -72,33 +71,37 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
    
-    public void sendInstructions(){
+    public boolean sendInstructions(){
     		SendMessage message = new SendMessage() // Create a message object object
     		.setChatId("-1001329331161")
     		.setText("Hello Welcome to Risk! To start the game type /ddmt_risk in a group chat window. You need exactly 3 players to start.");
     		try {
     			execute(message); // Sending our message object to user
+                return true;
   
     		}catch (TelegramApiException e) {
-    			e.printStackTrace();   
+    			e.printStackTrace();
+    			return false;
     		}
     }
     
-    public void sendUserMessage(){
+    public boolean sendUserMessage(){
 		SendMessage message = new SendMessage() // Create a message object object
 		.setChatId("-1001329331161")
 		.setText(Engine.sentMessage);
 		try {
 			execute(message); // Sending our message object to user
+            return true;
 		}catch (TelegramApiException e) {
-			e.printStackTrace();   
+			e.printStackTrace();
+			return false;
 		}
     }
     	
     public String getBotUsername() {
     	  // Return bot username
         // If bot username is @MyAmazingBot, it must return 'MyAmazingBot'
-        return "MyAmazingBot";
+        return "Risk-Chatbot";
     }
 
     public String getBotToken() {

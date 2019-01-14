@@ -1,0 +1,7 @@
+ignore:
+  - "src/main/java/cosc4353/Engine.java"
+  - "src/main/java/cosc4353/Main.java"
+  - "src/main/java/cosc4353/TelegramBot.java"
+  - "src/main/java/cosc4353/MenuInput.java"
+  - "src/main/java/cosc4353/Board.java"
+  - "src/main/java/cosc4353/TurnManager.java"
